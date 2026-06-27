@@ -320,14 +320,14 @@
     .lang-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 16px;
-      flex: 1;
+      gap: 8px;
+      padding: 12px 16px;
+      align-content: start;
     }
 
     .lang-item {
-      padding: 18px 12px;
-      border-radius: 16px;
+      padding: 12px 10px;
+      border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.1);
       background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
       cursor: pointer;
@@ -336,6 +336,7 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.07) inset;
       position: relative;
       overflow: hidden;
+      height: fit-content;
     }
 
     .lang-item::after {
@@ -350,11 +351,11 @@
     .lang-item:active { transform: scale(0.95); }
     .lang-item:active::after { opacity: 1; }
 
-    .lang-native { font-size: 18px; font-weight: 800; color: #fff; }
-    .lang-english { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+    .lang-native { font-size: 16px; font-weight: 800; color: #fff; line-height: 1.2; }
+    .lang-english { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 3px; }
     .lang-speakers {
       font-size: 10px;
-      margin-top: 6px;
+      margin-top: 4px;
       background: linear-gradient(90deg, #ff2d78, #a855f7);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
