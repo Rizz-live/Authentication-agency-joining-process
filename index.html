@@ -1613,8 +1613,147 @@ function goBack() {
   renderGrid(countries);
 }
 
-renderGrid(countries);
 
+// ============================================================
+// AUTO COUNTRY DETECT
+// ============================================================
+let detectedCountry = null;
+let dropdownOpen = false;
+
+async function detectAndRedirect() {
+  document.getElementById("mainView").classList.add("hide");
+  document.getElementById("loadingView").style.display = "flex";
+
+  let countryCode = null;
+
+  try {
+    const r = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(5000) });
+    const d = await r.json();
+    countryCode = d.country_code;
+  } catch(e) {}
+
+  if (!countryCode) {
+    try {
+      const r = await fetch("https://api.country.is/", { signal: AbortSignal.timeout(5000) });
+      const d = await r.json();
+      countryCode = d.country;
+    } catch(e) {}
+  }
+
+  if (!countryCode) {
+    try {
+      const r = await fetch("https://ipwho.is/", { signal: AbortSignal.timeout(5000) });
+      const d = await r.json();
+      countryCode = d.country_code;
+    } catch(e) {}
+  }
+
+  document.getElementById("loadingView").style.display = "none";
+  document.getElementById("mainView").classList.remove("hide");
+
+  if (countryCode) {
+    const c = countries.find(x => x.code === countryCode.toUpperCase());
+    if (c) {
+      detectedCountry = c;
+      document.getElementById("detectedFlag").textContent = c.flag;
+      document.getElementById("detectedName").textContent = c.name;
+      document.getElementById("detectedCard").style.display = "block";
+      document.getElementById("otherCountryToggle").style.display = "block";
+      return;
+    }
+  }
+
+  // Fallback: show full list
+  document.getElementById("fullListWrap").style.display = "block";
+  renderGrid2(countries);
+}
+
+function selectDetectedCountry() {
+  if (!detectedCountry) return;
+  currentCountryCode = detectedCountry.code;
+  const c = detectedCountry;
+  if (countryLanguages[c.code] && countryLanguages[c.code].length > 1) {
+    showLangSelection(c);
+    return;
+  }
+  const l = countryLang[c.code] || defaultLang;
+  const sl = countryLanguages[c.code];
+  const slc = (sl && sl.length === 1) ? sl[0].code : "en";
+  showComingSoon(c, l, slc);
+}
+
+function toggleDropdown() {
+  dropdownOpen = !dropdownOpen;
+  const panel = document.getElementById("dropdownPanel");
+  const arrow = document.getElementById("dropdownArrow");
+  const btn   = document.getElementById("dropdownBtn");
+  if (dropdownOpen) {
+    panel.style.display = "block";
+    arrow.style.transform = "rotate(180deg)";
+    btn.style.borderColor = "rgba(255,45,120,0.4)";
+    btn.style.color = "rgba(255,255,255,0.8)";
+    renderGrid(countries);
+    setTimeout(() => panel.scrollIntoView({ behavior:"smooth", block:"start" }), 100);
+  } else {
+    panel.style.display = "none";
+    arrow.style.transform = "rotate(0deg)";
+    btn.style.borderColor = "rgba(255,255,255,0.1)";
+    btn.style.color = "rgba(255,255,255,0.5)";
+  }
+}
+
+function filterCountries() {
+  const inp = document.getElementById("searchInput");
+  if (!inp) return;
+  renderGrid(countries.filter(c => c.name.toLowerCase().includes(inp.value.toLowerCase())));
+}
+
+function filterCountries2() {
+  const inp = document.getElementById("searchInput2");
+  if (!inp) return;
+  renderGrid2(countries.filter(c => c.name.toLowerCase().includes(inp.value.toLowerCase())));
+}
+
+function renderGrid2(list) {
+  const grid = document.getElementById("countryGrid2");
+  if (!grid) return;
+  if (!list.length) {
+    grid.innerHTML = '<div class="no-results">No country found</div>';
+    return;
+  }
+  const fc = ["IN","US","PH","NG","BD","NP"];
+  const featured = fc.map(code => list.find(c => c.code === code)).filter(Boolean);
+  const rest = list.filter(c => !fc.includes(c.code));
+  const mk = (c, isFeat, i) => `
+    <div class="country-item ${isFeat?'featured':''}" onclick="selectCountry('${c.code}')" style="animation-delay:${i*0.03}s;">
+      <div class="country-flag-wrap">${c.flag}</div>
+      <div class="country-info">
+        <div class="country-name">${c.name}</div>
+        ${isFeat?'<div class="country-tag">⭐ Featured</div>':''}
+      </div>
+      <i class="ti ti-chevron-right country-arrow"></i>
+    </div>`;
+  let html = '';
+  if (featured.length) {
+    html += '<div class="section-label">⭐ Popular</div><div class="country-grid" style="padding-top:4px;">';
+    html += featured.map((c,i)=>mk(c,true,i)).join('');
+    html += '</div><div class="section-label">🌍 All Countries</div><div class="country-grid" style="padding-top:4px;">';
+    html += rest.map((c,i)=>mk(c,false,i)).join('');
+    html += '</div>';
+  } else {
+    html = '<div class="country-grid" style="padding-top:4px;">' + rest.map((c,i)=>mk(c,false,i)).join('') + '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+function goBackToCountry() {
+  document.getElementById("langView").classList.remove("show");
+  document.getElementById("comingSoon").classList.remove("show");
+  document.getElementById("mainView").classList.remove("hide");
+}
+
+// Start
+detectAndRedirect();
 </script>
 </body>
 </html>
