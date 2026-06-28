@@ -614,61 +614,14 @@
 
   <!-- MAIN COUNTRY SELECTION -->
   <div class="main-view" id="mainView">
-
-    <!-- DETECTED COUNTRY CARD -->
-    <div id="detectedCard" style="display:none; margin:14px 12px 0; border-radius:18px; background:linear-gradient(135deg,rgba(255,45,120,0.18),rgba(124,58,237,0.18)); border:1px solid rgba(255,45,120,0.3); box-shadow:0 8px 32px rgba(255,45,120,0.15),0 1px 0 rgba(255,255,255,0.08) inset; overflow:hidden;">
-      <!-- Location badge -->
-      <div style="padding:10px 14px 6px; display:flex; align-items:center; gap:6px;">
-        <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;animation:pulse-glow 2s infinite;flex-shrink:0;"></div>
-        <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.45);">📍 Your Location Detected</span>
-      </div>
-      <!-- Country row - clickable -->
-      <div id="detectedCountryRow" onclick="selectDetectedCountry()" style="display:flex;align-items:center;gap:14px;padding:12px 16px 14px;cursor:pointer;">
-        <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 4px 14px rgba(0,0,0,0.4),0 1px 0 rgba(255,255,255,0.1) inset;border:1px solid rgba(255,255,255,0.1);flex-shrink:0;">
-          <span id="detectedFlag"></span>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:0.5px;margin-bottom:3px;">You are in</div>
-          <div id="detectedName" style="font-size:20px;font-weight:800;background:linear-gradient(135deg,#fff,#f9a8d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;"></div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-          <div style="background:linear-gradient(135deg,#ff2d78,#7c3aed);color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;box-shadow:0 4px 14px rgba(255,45,120,0.35);white-space:nowrap;">View Process →</div>
-        </div>
+    <div class="search-wrap" style="position:sticky;top:71px;z-index:50;background:rgba(10,0,21,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <div class="search-inner">
+        <i class="ti ti-search search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Search country..." oninput="filterCountries()" autocomplete="off">
       </div>
     </div>
-
-    <!-- OTHER COUNTRY DROPDOWN TOGGLE -->
-    <div id="otherCountryToggle" style="display:none; margin:10px 12px 0;">
-      <button onclick="toggleDropdown()" id="dropdownBtn" style="width:100%;display:flex;align-items:center;justify-content:between;gap:10px;padding:13px 16px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
-        <i class="ti ti-world" style="font-size:16px;color:rgba(255,255,255,0.3);"></i>
-        <span style="flex:1;text-align:left;">Other Country?</span>
-        <i class="ti ti-chevron-down" id="dropdownArrow" style="font-size:14px;transition:transform 0.25s;"></i>
-      </button>
-    </div>
-
-    <!-- DROPDOWN COUNTRY LIST (hidden by default) -->
-    <div id="dropdownPanel" style="display:none; margin-top:8px;">
-      <div class="search-wrap" style="position:relative;top:auto;background:transparent;padding:0 12px 10px;">
-        <div class="search-inner">
-          <i class="ti ti-search search-icon"></i>
-          <input type="text" id="searchInput" placeholder="Search country..." oninput="filterCountries()" autocomplete="off">
-        </div>
-      </div>
-      <div id="countryGrid"></div>
-    </div>
-
-    <!-- DEFAULT: no detection, show full list directly -->
-    <div id="fullListWrap" style="display:none;">
-      <div class="search-wrap" style="position:sticky;top:71px;z-index:50;background:rgba(10,0,21,0.85);backdrop-filter:blur(16px);padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.05);">
-        <div class="search-inner">
-          <i class="ti ti-search search-icon"></i>
-          <input type="text" id="searchInput2" placeholder="Search country..." oninput="filterCountries2()" autocomplete="off">
-        </div>
-      </div>
-      <div id="countryGrid2"></div>
-    </div>
-
-  </div>
+    <div id="countryGrid"></div>
+  </div>  </div>
 
   <!-- LANGUAGE SELECTION VIEW -->
   <div class="lang-view" id="langView">
@@ -1614,13 +1567,12 @@ function goBack() {
 }
 
 
-// ============================================================
-// AUTO COUNTRY DETECT
-// ============================================================
-let detectedCountry = null;
-let dropdownOpen = false;
 
-async function detectAndRedirect() {
+// ============================================================
+// SILENT AUTO DETECT — no UI shown, directly open language/process
+// ============================================================
+async function detectAndStart() {
+  // Show loading spinner silently
   document.getElementById("mainView").classList.add("hide");
   document.getElementById("loadingView").style.display = "flex";
 
@@ -1649,57 +1601,30 @@ async function detectAndRedirect() {
   }
 
   document.getElementById("loadingView").style.display = "none";
-  document.getElementById("mainView").classList.remove("hide");
 
   if (countryCode) {
     const c = countries.find(x => x.code === countryCode.toUpperCase());
     if (c) {
-      detectedCountry = c;
-      document.getElementById("detectedFlag").textContent = c.flag;
-      document.getElementById("detectedName").textContent = c.name;
-      document.getElementById("detectedCard").style.display = "block";
-      document.getElementById("otherCountryToggle").style.display = "block";
+      currentCountryCode = c.code;
+
+      // Multi-language country → show language selection directly
+      if (countryLanguages[c.code] && countryLanguages[c.code].length > 1) {
+        showLangSelection(c);
+        return;
+      }
+
+      // Single language → straight to process
+      const l = countryLang[c.code] || defaultLang;
+      const sl = countryLanguages[c.code];
+      const slc = (sl && sl.length === 1) ? sl[0].code : "en";
+      showComingSoon(c, l, slc);
       return;
     }
   }
 
-  // Fallback: show full list
-  document.getElementById("fullListWrap").style.display = "block";
-  renderGrid2(countries);
-}
-
-function selectDetectedCountry() {
-  if (!detectedCountry) return;
-  currentCountryCode = detectedCountry.code;
-  const c = detectedCountry;
-  if (countryLanguages[c.code] && countryLanguages[c.code].length > 1) {
-    showLangSelection(c);
-    return;
-  }
-  const l = countryLang[c.code] || defaultLang;
-  const sl = countryLanguages[c.code];
-  const slc = (sl && sl.length === 1) ? sl[0].code : "en";
-  showComingSoon(c, l, slc);
-}
-
-function toggleDropdown() {
-  dropdownOpen = !dropdownOpen;
-  const panel = document.getElementById("dropdownPanel");
-  const arrow = document.getElementById("dropdownArrow");
-  const btn   = document.getElementById("dropdownBtn");
-  if (dropdownOpen) {
-    panel.style.display = "block";
-    arrow.style.transform = "rotate(180deg)";
-    btn.style.borderColor = "rgba(255,45,120,0.4)";
-    btn.style.color = "rgba(255,255,255,0.8)";
-    renderGrid(countries);
-    setTimeout(() => panel.scrollIntoView({ behavior:"smooth", block:"start" }), 100);
-  } else {
-    panel.style.display = "none";
-    arrow.style.transform = "rotate(0deg)";
-    btn.style.borderColor = "rgba(255,255,255,0.1)";
-    btn.style.color = "rgba(255,255,255,0.5)";
-  }
+  // Fallback: show country list
+  document.getElementById("mainView").classList.remove("hide");
+  renderGrid(countries);
 }
 
 function filterCountries() {
@@ -1708,52 +1633,16 @@ function filterCountries() {
   renderGrid(countries.filter(c => c.name.toLowerCase().includes(inp.value.toLowerCase())));
 }
 
-function filterCountries2() {
-  const inp = document.getElementById("searchInput2");
-  if (!inp) return;
-  renderGrid2(countries.filter(c => c.name.toLowerCase().includes(inp.value.toLowerCase())));
-}
-
-function renderGrid2(list) {
-  const grid = document.getElementById("countryGrid2");
-  if (!grid) return;
-  if (!list.length) {
-    grid.innerHTML = '<div class="no-results">No country found</div>';
-    return;
-  }
-  const fc = ["IN","US","PH","NG","BD","NP"];
-  const featured = fc.map(code => list.find(c => c.code === code)).filter(Boolean);
-  const rest = list.filter(c => !fc.includes(c.code));
-  const mk = (c, isFeat, i) => `
-    <div class="country-item ${isFeat?'featured':''}" onclick="selectCountry('${c.code}')" style="animation-delay:${i*0.03}s;">
-      <div class="country-flag-wrap">${c.flag}</div>
-      <div class="country-info">
-        <div class="country-name">${c.name}</div>
-        ${isFeat?'<div class="country-tag">⭐ Featured</div>':''}
-      </div>
-      <i class="ti ti-chevron-right country-arrow"></i>
-    </div>`;
-  let html = '';
-  if (featured.length) {
-    html += '<div class="section-label">⭐ Popular</div><div class="country-grid" style="padding-top:4px;">';
-    html += featured.map((c,i)=>mk(c,true,i)).join('');
-    html += '</div><div class="section-label">🌍 All Countries</div><div class="country-grid" style="padding-top:4px;">';
-    html += rest.map((c,i)=>mk(c,false,i)).join('');
-    html += '</div>';
-  } else {
-    html = '<div class="country-grid" style="padding-top:4px;">' + rest.map((c,i)=>mk(c,false,i)).join('') + '</div>';
-  }
-  grid.innerHTML = html;
-}
-
 function goBackToCountry() {
   document.getElementById("langView").classList.remove("show");
   document.getElementById("comingSoon").classList.remove("show");
   document.getElementById("mainView").classList.remove("hide");
+  document.getElementById("searchInput").value = "";
+  renderGrid(countries);
 }
 
-// Start
-detectAndRedirect();
+// Start silently
+detectAndStart();
 </script>
 </body>
 </html>
